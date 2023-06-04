@@ -1,0 +1,10 @@
+.red-text {
+    -fx-fill: red;
+}
+
+.green-text {
+    -fx-fill: green;
+}
+.StyleClassedTextArea {
+    -fx-fill: green;
+}
