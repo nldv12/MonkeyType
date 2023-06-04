@@ -1,10 +1,18 @@
 
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -34,7 +42,13 @@ public class Main extends Application {
     private int skippedCount;
     private boolean isPaused;
 
-//    --module-path "C:\javafx-sdk-20.0.1\lib" --add-modules javafx.controls,javafx.fxml
+    //    --module-path "C:\javafx-sdk-20.0.1\lib" --add-modules javafx.controls,javafx.fxml
+
+
+    private static final String KEY = "dziś jest poniedziałek";
+    private Text keyLabel;
+    private TextFlow resLabel;
+    String character;
 
     public static void main(String[] args) {
         launch(args);
@@ -42,18 +56,52 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        
+        // todo: implement new scheme to this package now not working good
         selectedDuration = 15; // Default duration
+
+        resLabel = new TextFlow();
+        resLabel.setLineSpacing(5);
+        keyLabel = new Text(KEY);
+        keyLabel.setFont(Font.font("Arial", 20));
+        keyLabel.setFill(Color.LIGHTGRAY);
+
+        HBox labelsBox = new HBox(0);
+        labelsBox.setAlignment(Pos.CENTER);
+        labelsBox.getChildren().addAll(resLabel, keyLabel);
+
+        VBox textArea = new VBox(0);
+        textArea.setAlignment(Pos.CENTER);
+        textArea.getChildren().add(labelsBox);
 
         BorderPane root = new BorderPane();
         root.setTop(createMenu());
-        root.setCenter(createTextArea());
+
+        root.setCenter(textArea);
+//        root.setCenter(createTextArea());
 //        root.setBottom(createFooter());
 
         Scene scene = new Scene(root, 800, 300);
+
+        scene.setOnKeyPressed(event -> {
+            KeyCode keyCode = event.getCode();
+            character = keyCode.toString().toLowerCase();
+            if (event.isAltDown() && keyCode == KeyCode.S) {
+                character = "ś";
+                handleKeyTyped(character);
+            } else if (event.isAltDown() && keyCode == KeyCode.L) {
+                character = "ł";
+                handleKeyTyped(character);
+            } else if (!character.equals("control") && !character.equals("alt_graph")) {
+                handleKeyTyped(character);
+            }
+        });
+
         primaryStage.setScene(scene);
         primaryStage.setTitle("Monkeytype");
         primaryStage.show();
     }
+
 
     //MENU ========================================================================
 
@@ -72,6 +120,7 @@ public class Main extends Application {
         menuBar.getMenus().addAll(languageMenu, durationMenu);
         return menuBar;
     }
+
     private List<MenuItem> createLanguageItems() {
         List<MenuItem> languageItems = new ArrayList<>();
         File dictionaryDirectory = new File(DICTIONARY_DIRECTORY);
@@ -143,6 +192,48 @@ public class Main extends Application {
 
 
     //TEXT_AREA ========================================================================
+    private void handleKeyTyped(String character) {
+        if (character.equals("space"))
+            character = " ";
+
+        if (character.charAt(0) == keyLabel.getText().charAt(0)) {
+            Text successText = new Text(character);
+            successText.setFont(Font.font("Arial", 20));
+            successText.setFill(Color.GREEN);
+            resLabel.getChildren().add(successText);
+
+            String prevText = keyLabel.getText();
+            String newText = prevText.substring(0, 0) + prevText.substring(1);
+            keyLabel.setText(newText);
+
+        }else if (keyLabel.getText().charAt(0) != ' ' && character.equals(" ")){
+            while (keyLabel.getText().charAt(0) != ' '){
+                Text errorText = new Text(keyLabel.getText().charAt(0)+ "");
+                errorText.setFont(Font.font("Arial", 20));
+                errorText.setFill(Color.BLACK);
+                resLabel.getChildren().add(errorText);
+                String prevText = keyLabel.getText();
+                String newText = prevText.substring(0, 0) + prevText.substring(1);
+                keyLabel.setText(newText);
+            }
+            handleKeyTyped(" ");
+        }else if (keyLabel.getText().charAt(0) == ' '){
+            Text errorText = new Text(character);
+            errorText.setFont(Font.font("Arial", 20));
+            errorText.setFill(Color.ORANGE);
+            resLabel.getChildren().add(errorText);
+        }
+        else {
+            Text errorText = new Text(character);
+            errorText.setFont(Font.font("Arial", 20));
+            errorText.setFill(Color.RED);
+            resLabel.getChildren().add(errorText);
+
+            String prevText = keyLabel.getText();
+            String newText = prevText.substring(0, 0) + prevText.substring(1);
+            keyLabel.setText(newText);
+        }
+    }
 
     private TextArea createTextArea() {
         textArea = new TextArea();
@@ -159,7 +250,6 @@ public class Main extends Application {
 
         return textArea;
     }
-
 
 
     private void startTest() {
@@ -184,11 +274,10 @@ public class Main extends Application {
                 paragraph.append(dictionaryWords.get(randomIndex)).append(" ");
             }
 
-            textArea.setText(paragraph.toString().trim());
+            keyLabel.setText(paragraph.toString().trim());
+//            textArea.setText(paragraph.toString().trim());
         }
     }
-
-
 
 
     private void resetTest() {
