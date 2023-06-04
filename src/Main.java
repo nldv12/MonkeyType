@@ -55,8 +55,6 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-
-
     //MENU ========================================================================
 
     private MenuBar createMenu() {
