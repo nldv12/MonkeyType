@@ -53,7 +53,7 @@
 //        BorderPane root = new BorderPane();
 //        root.setTop(createMenu());
 //        root.setCenter(createTextArea());
-////        root.setBottom(createFooter());
+//        root.setBottom(createFooter());
 //
 //        Scene scene = new Scene(root, 800, 300);
 //        primaryStage.setScene(scene);

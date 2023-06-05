@@ -1,9 +1,14 @@
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -19,9 +24,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
 
 public class Main extends Application {
 
@@ -41,14 +48,18 @@ public class Main extends Application {
     private int extraCount;
     private int skippedCount;
     private boolean isPaused;
+    private boolean isTimerRunning;
 
     //    --module-path "C:\javafx-sdk-20.0.1\lib" --add-modules javafx.controls,javafx.fxml
 
-
-    private static final String KEY = "dziś jest poniedziałek";
     private Text keyLabel;
     private TextFlow resLabel;
     String character;
+
+    private boolean tabPressed = false;
+    private boolean altPressed = false;
+    private boolean ctrlPressed = false;
+    private boolean shiftPressed = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -56,15 +67,19 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        
-        // todo: implement new scheme to this package now not working good
         selectedDuration = 15; // Default duration
-
         resLabel = new TextFlow();
         resLabel.setLineSpacing(5);
-        keyLabel = new Text(KEY);
+        keyLabel = new Text();
+        keyLabel.setWrappingWidth(400);
+
         keyLabel.setFont(Font.font("Arial", 20));
         keyLabel.setFill(Color.LIGHTGRAY);
+
+        resLabel.getChildren().add(keyLabel);
+
+
+
 
         HBox labelsBox = new HBox(0);
         labelsBox.setAlignment(Pos.CENTER);
@@ -76,34 +91,108 @@ public class Main extends Application {
 
         BorderPane root = new BorderPane();
         root.setTop(createMenu());
-
         root.setCenter(textArea);
 //        root.setCenter(createTextArea());
-//        root.setBottom(createFooter());
+        root.setBottom(createFooter());
 
         Scene scene = new Scene(root, 800, 300);
 
         scene.setOnKeyPressed(event -> {
             KeyCode keyCode = event.getCode();
-            character = keyCode.toString().toLowerCase();
-            if (event.isAltDown() && keyCode == KeyCode.S) {
-                character = "ś";
-                handleKeyTyped(character);
-            } else if (event.isAltDown() && keyCode == KeyCode.L) {
-                character = "ł";
-                handleKeyTyped(character);
-            } else if (!character.equals("control") && !character.equals("alt_graph")) {
-                handleKeyTyped(character);
+            // tab Clicked
+            if (keyCode == KeyCode.TAB) {
+                tabPressed = true;
+            } else if (tabPressed && keyCode == KeyCode.ENTER) {
+
+                resetTest();
+                System.out.println("test restarted");
+                tabPressed = false;
+            } else {
+                tabPressed = false;
             }
+
+            // Shift Clicked
+            if (event.isShiftDown())
+                character = keyCode.toString();
+            else
+                character = keyCode.toString().toLowerCase();
+
+
+            boolean isJustLetter = !tabPressed && !ctrlPressed && !altPressed && !shiftPressed && keyCode.isLetterKey();
+
+
+            if (event.isAltDown()) {
+                // alt Clicked
+                altPressed = true;
+                checkIfAltDown(event, keyCode);
+                altPressed = false;
+            } else if (event.isControlDown() && event.isShiftDown() && keyCode == KeyCode.P) {
+                // Ctrl + Shift + P
+                ctrlPressed = true;
+                shiftPressed = true;
+                handlePause();
+                ctrlPressed = false;
+                shiftPressed = false;
+            } else if (isJustLetter && !isPaused) {
+                // letter clicked
+                handleLetterTyped(character);
+            } else if (character.equals("space")){
+                handleSpaceTyped(character);
+            }
+
         });
+
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Monkeytype");
         primaryStage.show();
     }
 
+    private void handlePause() {
+        if (isPaused)
+            isPaused = false;
+        else {
+            isPaused = true;
+            isTimerRunning = false;
+        }
+    }
 
-    //MENU ========================================================================
+
+    private void checkIfAltDown(KeyEvent event, KeyCode keyCode) {
+        // polish signs
+
+        if (event.isAltDown() && keyCode == KeyCode.A) {
+            character = "ą";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.C) {
+            character = "ć";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.E) {
+            character = "ę";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.L) {
+            character = "ł";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.N) {
+            character = "ń";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.O) {
+            character = "ó";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.S) {
+            character = "ś";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.X) {
+            character = "ź";
+            handleLetterTyped(character);
+        } else if (event.isAltDown() && keyCode == KeyCode.Z) {
+            character = "ż";
+            handleLetterTyped(character);
+        }
+    }
+
+
+    //HEADER ========================================================================
 
     private MenuBar createMenu() {
         menuBar = new MenuBar();
@@ -191,12 +280,38 @@ public class Main extends Application {
     }
 
 
-    //TEXT_AREA ========================================================================
-    private void handleKeyTyped(String character) {
+    //BODY ========================================================================
+
+    private void handleSpaceTyped(String character) {
         if (character.equals("space"))
             character = " ";
 
-        if (character.charAt(0) == keyLabel.getText().charAt(0)) {
+        if (keyLabel.getText().charAt(0) != ' ' && character.equals(" ")) {
+            while (keyLabel.getText().charAt(0) != ' ') {
+                Text errorText = new Text(keyLabel.getText().charAt(0) + "");
+                errorText.setFont(Font.font("Arial", 20));
+                errorText.setFill(Color.BLACK);
+                resLabel.getChildren().add(errorText);
+                String prevText = keyLabel.getText();
+                String newText = prevText.substring(0, 0) + prevText.substring(1);
+                keyLabel.setText(newText);
+            }
+            handleLetterTyped(" ");
+        }else {
+            Text successText = new Text(character);
+            resLabel.getChildren().add(successText);
+            String prevText = keyLabel.getText();
+            String newText = prevText.substring(0, 0) + prevText.substring(1);
+            keyLabel.setText(newText);
+        }
+
+
+    }
+
+    private void handleLetterTyped(String character) {
+
+
+        if (character.charAt(0) == keyLabel.getText().charAt(0)) {// if correct letter
             Text successText = new Text(character);
             successText.setFont(Font.font("Arial", 20));
             successText.setFill(Color.GREEN);
@@ -205,25 +320,12 @@ public class Main extends Application {
             String prevText = keyLabel.getText();
             String newText = prevText.substring(0, 0) + prevText.substring(1);
             keyLabel.setText(newText);
-
-        }else if (keyLabel.getText().charAt(0) != ' ' && character.equals(" ")){
-            while (keyLabel.getText().charAt(0) != ' '){
-                Text errorText = new Text(keyLabel.getText().charAt(0)+ "");
-                errorText.setFont(Font.font("Arial", 20));
-                errorText.setFill(Color.BLACK);
-                resLabel.getChildren().add(errorText);
-                String prevText = keyLabel.getText();
-                String newText = prevText.substring(0, 0) + prevText.substring(1);
-                keyLabel.setText(newText);
-            }
-            handleKeyTyped(" ");
-        }else if (keyLabel.getText().charAt(0) == ' '){
+        } else if (keyLabel.getText().charAt(0) == ' ') {// needed space, recived letter
             Text errorText = new Text(character);
             errorText.setFont(Font.font("Arial", 20));
             errorText.setFill(Color.ORANGE);
             resLabel.getChildren().add(errorText);
-        }
-        else {
+        } else {// if wrong letter
             Text errorText = new Text(character);
             errorText.setFont(Font.font("Arial", 20));
             errorText.setFill(Color.RED);
@@ -252,6 +354,19 @@ public class Main extends Application {
     }
 
 
+    // FOOTER ========================================================================
+    private HBox createFooter() {
+        HBox footer = new HBox();
+        footer.setPadding(new Insets(10));
+        footer.setSpacing(10);
+
+        Label restartLabel = new Label("Restart (Tab + Enter)");
+        Label pauseLabel = new Label("Pause (Ctrl + Shift + P)");
+        Label endLabel = new Label("End (Esc)");
+        footer.getChildren().addAll(restartLabel, pauseLabel, endLabel);
+        return footer;
+    }
+
     private void startTest() {
         currentIndex = 0;
         correctCount = 0;
@@ -259,26 +374,30 @@ public class Main extends Application {
         extraCount = 0;
         skippedCount = 0;
         isPaused = false;
-        textArea.requestFocus();
+//        textArea.requestFocus();
         generateParagraph();
 
     }
 
+
     private void generateParagraph() {
-        if (!dictionaryWords.isEmpty()) {
-            Random random = new Random();
-            StringBuilder paragraph = new StringBuilder();
+//        if (!dictionaryWords.isEmpty() && !paragrafGenerated) {
+        Random random = new Random();
+        StringBuilder paragraph = new StringBuilder();
 
-            for (int i = 0; i < WORDS_PER_PARAGRAPH; i++) {
-                int randomIndex = random.nextInt(dictionaryWords.size());
-                paragraph.append(dictionaryWords.get(randomIndex)).append(" ");
-            }
-
-            keyLabel.setText(paragraph.toString().trim());
-//            textArea.setText(paragraph.toString().trim());
+        for (int i = 0; i < WORDS_PER_PARAGRAPH; i++) {
+            int randomIndex = random.nextInt(dictionaryWords.size());
+            paragraph.append(dictionaryWords.get(randomIndex)).append(" ");
         }
-    }
 
+        keyLabel.setText(paragraph.toString().trim());
+        resLabel.getChildren().clear();
+
+//            keyLabel = new Text(paragraph.toString().trim());
+
+//            textArea.setText(paragraph.toString().trim());
+//        }
+    }
 
     private void resetTest() {
         if (!selectedLanguage.isEmpty()) {
@@ -286,17 +405,10 @@ public class Main extends Application {
         }
     }
 
-    private void restartTest() {
-        resetTest();
-    }
-
-    private void togglePause() {
-        isPaused = !isPaused;
-    }
 
     private void endTest() {
-        isPaused = true;
-        textArea.clear();
-        currentIndex = 0;
+//        isPaused = true;
+//        textArea.clear();
+//        currentIndex = 0;
     }
 }
