@@ -76,9 +76,7 @@ public class Main extends Application {
         keyLabel.setFont(Font.font("Arial", 20));
         keyLabel.setFill(Color.LIGHTGRAY);
 
-        resLabel.getChildren().add(keyLabel);
-
-
+//        resLabel.getChildren().add(keyLabel);
 
 
         HBox labelsBox = new HBox(0);
