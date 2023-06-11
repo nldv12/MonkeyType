@@ -1,3 +1,7 @@
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -9,9 +13,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.*;
 //--module-path "C:\javafx-sdk-20.0.1\lib" --add-modules javafx.controls,javafx.fxml
@@ -45,6 +51,8 @@ public class View extends Application {
     private HBox smallStats;
     private VBox testType;
     private VBox characters;
+    public Text cursor = new Text("|");
+
 
 
     public static void main(String[] args) {
@@ -54,6 +62,7 @@ public class View extends Application {
     @Override
     public void start(Stage primaryStage) {
         model.setPaused(true);
+        cursor.setStyle("-fx-font-size: 25; -fx-fill: white");
 
 
         mainText = new TextFlow();
@@ -68,8 +77,11 @@ public class View extends Application {
         root.setTop(createMenu());
         root.setCenter(mainText);
         root.setBottom(createFooter());
+        runCursorAnimation();
 
-        Scene scene = new Scene(root, 800, 450);
+
+
+        Scene scene = new Scene(root, 850, 450);
         scene.setOnKeyPressed(new KeyPressed(model, this, controller));
         scene.setOnKeyTyped(new KeyTyped(model, this, controller));
         scene.getStylesheets().add("styles.css");
@@ -123,11 +135,9 @@ public class View extends Application {
         pauseLabel.setFont(Font.font("Arial", 13));
         pauseLabel.setTextFill(Color.ORANGE);
 
-
         endLabel = new Label("End (Esc)");
         endLabel.setFont(Font.font("Arial", 13));
         endLabel.setTextFill(Color.ORANGE);
-
 
         footer.getChildren().addAll(timerLabel, restartLabel, pauseLabel, endLabel);
         return footer;
@@ -203,7 +213,7 @@ public class View extends Application {
 
         // wpm
         Label wpmLabel = new Label("wpm");
-        wpmLabel.setFont(Font.font("Consolas", 25));
+        wpmLabel.setFont(Font.font("Consolas", 35));
         wpmLabel.setStyle("-fx-text-fill: #636569;");
 
         Label wpmNumber = new Label(model.getAverageWPM() + "");
@@ -211,7 +221,7 @@ public class View extends Application {
         wpmNumber.setStyle("-fx-text-fill: #deb737;");
         // acc
         Label accLabel = new Label("acc");
-        accLabel.setFont(Font.font("Consolas", 25));
+        accLabel.setFont(Font.font("Consolas", 35));
         accLabel.setStyle("-fx-text-fill: #636569;");
 
         Label accNumber = new Label(model.getAccuracy() + "%");
@@ -293,6 +303,16 @@ public class View extends Application {
         characters.getChildren().addAll(charactersLabel, charStatsLabel);
 
         return characters;
+    }
+
+    private void runCursorAnimation (){
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(cursor.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.seconds(0.5), new KeyValue(cursor.opacityProperty(), 0.0))
+        );
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.setAutoReverse(true);
+        timeline.play();
     }
 
 

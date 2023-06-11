@@ -9,10 +9,8 @@ public class Model {
 
 
     private Thread countdownTimerThread;
-
-
-
     private Thread animationThread;
+    private Thread cursorAnimationThread;
 
     private static final String DICTIONARY_DIRECTORY = "dictionary";
     private static final int[] durations = {15, 20, 45, 60, 90, 120, 300};
@@ -161,9 +159,17 @@ public class Model {
         return animationThread;
     }
 
+    public Thread getCursorAnimationThread() {
+        return cursorAnimationThread;
+    }
+
+
 
 
     // SETTERS =================================================================================================================================
+    public void setCursorAnimationThread(Thread cursorAnimationThread) {
+        this.cursorAnimationThread = cursorAnimationThread;
+    }
 
     public void setAnimationThread(Thread animationThread) {
         this.animationThread = animationThread;

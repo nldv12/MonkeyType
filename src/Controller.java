@@ -1,3 +1,4 @@
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -116,7 +117,9 @@ public class Controller {
         model.getTypedWords().clear();
         model.getWpmPerWordForFile().clear();
 
+
         generateParagraph();
+
         runWaveAnimationThread();
 
         model.getCountdownTimerThread().setDaemon(true);
@@ -125,7 +128,6 @@ public class Controller {
     }
 
     private void runWaveAnimationThread() {
-
         if (model.getAnimationThread() != null && model.getAnimationThread().isAlive()) {
             model.getAnimationThread().interrupt();
 
@@ -137,8 +139,13 @@ public class Controller {
 
     }
 
+
     public void generateParagraph() {
         view.getMainText().getChildren().clear();
+        view.getMainText().getChildren().add(0, view.cursor);
+        model.getKeysList().add(0, view.cursor);
+
+
         Random random = new Random();
         StringBuilder paragraph = new StringBuilder();
 
@@ -320,30 +327,9 @@ public class Controller {
     }
 
 
-//    public void generateChart(){
-//        NumberAxis xAxis = new NumberAxis();
-//        NumberAxis yAxis = new NumberAxis();
-//        xAxis.setLabel("Time in seconds");
-//        yAxis.setLabel("Words per Minute");
-//
-//        XYChart.Series<Number, Number> currentWPM = new XYChart.Series<>();
-//
-//        model.getWpm_InCurrentSecond().forEach((sec, wpm) -> {
-//            currentWPM.getData().add(new XYChart.Data<>(sec, wpm));
-//        });
-//
-//        XYChart.Series<Number, Number> averageWPM = new XYChart.Series<>();
-//        model.getAverage_WPM_InCurrentSecond().forEach((sec, wpm) -> {
-//            averageWPM.getData().add(new XYChart.Data<>(sec, wpm));
-//        });
-//        AreaChart<Number, Number> areaChart = new AreaChart<>(xAxis, yAxis);
-//
-//        areaChart.getData().addAll(currentWPM,averageWPM);
-//
-//        Platform.runLater(() -> {
-//            view.getBigSatsAndChart().getChildren().add(areaChart);
-//        });
-//    }
+
+
+
 
 
 }
