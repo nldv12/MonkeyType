@@ -6,24 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 public class Model {
-
-
     private Thread countdownTimerThread;
     private Thread animationThread;
-    private Thread cursorAnimationThread;
-
     private static final String DICTIONARY_DIRECTORY = "dictionary";
     private static final int[] durations = {15, 20, 45, 60, 90, 120, 300};
     private static final int WORDS_PER_PARAGRAPH = 30;
-
     private String selectedLanguage = "Language";
     private int selectedDuration;
-
-
     private long prevTime;
     private long now;
-
-
+    private int numberOfCharsInSec;
+    private int numberOfCharsInWord;
     private int averageWPM;
 
     private int accuracy;
@@ -37,19 +30,10 @@ public class Model {
     private List<String> wpmPerWordForFile = new ArrayList();
 
     private boolean isPaused;
-
-
-
     private boolean somethingTyped;
-
     private boolean isGameOver;
-
-
+    private boolean isCurrWordLettersCounted;
     private int currentIndex = 0;
-
-
-    private int spacesAtAll = 0;
-
     private int correctCount;
     private int mistakeCount;
     private int extraCount;
@@ -101,10 +85,6 @@ public class Model {
         return skippedCount;
     }
 
-    public int getSpacesAtAll() {
-        return spacesAtAll;
-    }
-
     public Map<Integer, Integer> getWpm_InCurrentSecond() {
         return wpm_InCurrentSecond;
     }
@@ -148,9 +128,11 @@ public class Model {
     public List<String> getWpmPerWordForFile() {
         return wpmPerWordForFile;
     }
+
     public boolean isGameOver() {
         return isGameOver;
     }
+
     public boolean isSomethingTyped() {
         return somethingTyped;
     }
@@ -159,21 +141,41 @@ public class Model {
         return animationThread;
     }
 
-    public Thread getCursorAnimationThread() {
-        return cursorAnimationThread;
+    public int getNumberOfCharsInSec() {
+        return numberOfCharsInSec;
+    }
+
+    public int getNumberOfCharsInWord() {
+        return numberOfCharsInWord;
+    }
+
+    public boolean isCurrWordLettersCounted() {
+        return isCurrWordLettersCounted;
     }
 
 
-
-
     // SETTERS =================================================================================================================================
-    public void setCursorAnimationThread(Thread cursorAnimationThread) {
-        this.cursorAnimationThread = cursorAnimationThread;
+
+    public void setCurrWordLettersCounted(boolean currWordLettersCounted) {
+        isCurrWordLettersCounted = currWordLettersCounted;
+    }
+
+    public void setNumberOfCharsInSec(int numberOfCharsInSec) {
+        this.numberOfCharsInSec = numberOfCharsInSec;
+    }
+
+    public void setNumberOfCharsInWord(int numberOfCharsInWord) {
+        this.numberOfCharsInWord = numberOfCharsInWord;
+    }
+
+    public void incNumberOfCharsInSec() {
+        this.numberOfCharsInSec++;
     }
 
     public void setAnimationThread(Thread animationThread) {
         this.animationThread = animationThread;
     }
+
     public void setSomethingTyped(boolean somethingTyped) {
         this.somethingTyped = somethingTyped;
     }
@@ -181,6 +183,7 @@ public class Model {
     public void setGameOver(boolean gameOver) {
         isGameOver = gameOver;
     }
+
     public void setPrevTime(long prevTime) {
         this.prevTime = prevTime;
     }
@@ -208,16 +211,6 @@ public class Model {
     public void setAverageWPM(int averageWPM) {
         this.averageWPM = averageWPM;
     }
-
-
-    public void setSpacesAtAll(int spacesAtAll) {
-        this.spacesAtAll = spacesAtAll;
-    }
-
-    public void incSpacesAtAll() {
-        this.spacesAtAll++;
-    }
-
 
     public void setCurrentIndex(int currentIndex) {
         this.currentIndex = currentIndex;

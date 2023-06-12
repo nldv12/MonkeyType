@@ -1,19 +1,13 @@
-import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -102,13 +96,21 @@ public class Controller {
         CountdownTimer countdownTimer = new CountdownTimer(model, view, this, model.getSelectedDuration());
 
         model.setCountdownTimerThread(new Thread(countdownTimer));
+        model.setAccuracy(0);
+        model.setAverageWPM(0);
+        model.setNumberOfCharsInSec(0);
+        model.setNumberOfCharsInWord(0);
 
         model.setCurrentIndex(0);
         model.setCorrectCount(0);
         model.setMistakeCount(0);
         model.setExtraCount(0);
         model.setSkippedCount(0);
+
+        model.setGameOver(false);
         model.setPaused(false);
+        model.setSomethingTyped(false);
+        model.setCurrWordLettersCounted(false);
 
         model.getKeysList().clear();
         model.getWpm_InCurrentSecond().clear();
@@ -129,19 +131,22 @@ public class Controller {
 
     private void runWaveAnimationThread() {
         if (model.getAnimationThread() != null && model.getAnimationThread().isAlive()) {
-            model.getAnimationThread().interrupt();
-
+            // do nothing just continue Wave animation
+        } else {
+            WaveAnimationTask animationTask = new WaveAnimationTask(model, model.getKeysList());
+            model.setAnimationThread(new Thread(animationTask));
+            model.getAnimationThread().setDaemon(true);
+            model.getAnimationThread().start();
         }
-        WaveAnimationTask animationTask = new WaveAnimationTask(model, model.getKeysList());
-        model.setAnimationThread(new Thread(animationTask));
-        model.getAnimationThread().setDaemon(true);
-        model.getAnimationThread().start();
-
     }
 
 
     public void generateParagraph() {
         view.getMainText().getChildren().clear();
+        model.getKeysList().clear();
+
+        model.setCurrentIndex(0);
+
         view.getMainText().getChildren().add(0, view.cursor);
         model.getKeysList().add(0, view.cursor);
 
@@ -199,19 +204,25 @@ public class Controller {
     }
 
 
-    public void countCurrentWPMforCurrentSecond(int prevSecWordsCount, int countSeconds) {
-        int wpm_InCurrentSec = (model.getSpacesAtAll() - prevSecWordsCount) * 60;
-        model.getWpm_InCurrentSecond().put(countSeconds, wpm_InCurrentSec);
+    public void countCurrentWPMforCurrentSecond(int countSeconds) {
+
+        if (model.getNumberOfCharsInWord() > 0) {
+            double wpm_InCurrentSec = ((double) model.getNumberOfCharsInSec() / model.getNumberOfCharsInWord()) * 60;
+            model.getWpm_InCurrentSecond().put(countSeconds, (int) wpm_InCurrentSec);
+        }else {
+            model.getWpm_InCurrentSecond().put(countSeconds, 0);
+        }
     }
 
     public void countAverageWPMforCurrentSecond(int countSeconds) {
-        int averageWPM_InCurrentSec;
+        int averageWPM_InCurrentSec = 0;
 
         int sum = 0;
         for (int value : model.getWpm_InCurrentSecond().values()) {
             sum += value;
         }
-        averageWPM_InCurrentSec = sum / model.getWpm_InCurrentSecond().size();
+        if (model.getWpm_InCurrentSecond().size() != 0)
+            averageWPM_InCurrentSec = sum / model.getWpm_InCurrentSecond().size();
         model.getAverage_WPM_InCurrentSecond().put(countSeconds, averageWPM_InCurrentSec);
     }
 
@@ -226,7 +237,7 @@ public class Controller {
                 view.nextPage();
             });
             model.setSomethingTyped(false);
-        }else {
+        } else {
             Platform.runLater(() -> {
                 view.nextPage();
             });
@@ -235,18 +246,15 @@ public class Controller {
 
 
     private void generateStatsFile() {
-        // Pobieranie aktualnej daty i godziny
         Date currentDate = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy_HH.mm");
         String formattedDate = dateFormat.format(currentDate);
 
-        // Tworzenie nazwy pliku z datą i godziną
+
         String fileName = formattedDate + ".txt";
         File file = new File(fileName);
 
         try {
-
-            // Zapisywanie danych do pliku
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             for (String line : model.getWpmPerWordForFile()) {
                 writer.write(line);
@@ -254,9 +262,9 @@ public class Controller {
             }
             writer.close();
 
-            System.out.println("Wygenerowano plik: " + fileName);
+            System.out.println("Generated File: " + fileName);
         } catch (IOException e) {
-            System.err.println("Wystąpił błąd podczas generowania pliku.");
+            System.err.println("Something went wrong while generating stats file.");
             e.printStackTrace();
         }
     }
@@ -269,8 +277,6 @@ public class Controller {
             int wpm = model.getWordsWPM().get(i);
             model.getWpmPerWordForFile().add(word + " -> " + wpm + "wpm");
         }
-
-
     }
 
     private void getTypedWords() {
@@ -300,7 +306,8 @@ public class Controller {
     }
 
     private void calcAccuracy() {
-        int index = model.getCurrentIndex();
+
+        int index = model.getKeysList().indexOf(view.cursor);
         int accuracy = 0;
 
         if (index > 0)
@@ -313,7 +320,7 @@ public class Controller {
     public void updateTimerLabel(int seconds) {
         Platform.runLater(() -> {
             view.getTimerLabel().setText(String.valueOf(seconds));
-            if (seconds<12)
+            if (seconds < 12)
                 lowTimeAnimation(view.getTimerLabel());
             else
                 view.getTimerLabel().setTextFill(Color.ORANGE);
@@ -327,9 +334,14 @@ public class Controller {
     }
 
 
-
-
-
-
-
+    public void countLettersForWord() {
+        int nrOfCharsInWord = 0;
+        int startIndex = model.getCurrentIndex();
+        while (!model.getKeysList().get(startIndex).getText().equals(" ")){
+            nrOfCharsInWord++;
+            startIndex++;
+        }
+        model.setNumberOfCharsInWord(nrOfCharsInWord);
+        model.setCurrWordLettersCounted(true);
+    }
 }

@@ -1,8 +1,6 @@
 
 .menu {
     -fx-background-color: orange;
-    /*-fx-background-color: #151515FF;*/
-    -f930D0DFFx-font-fA17900FFamily: Con886500FFsolas;
     -fx-font-size: 15;
 }
 
@@ -16,15 +14,6 @@
 .chart-legend {
     -fx-background-color:  transparent;
     -fx-padding: 20px;
-}
-.chart-legend-item-symbol{
-    /*-fx-opacity: 0;*/
-    /*zmiana Przezroczystości*/
-}
-
-.chart-legend-item{
-    /*zmiana koloru*/
-    -fx-text-fill: #c900ff;
 }
 
 .axis-label {
@@ -52,14 +41,6 @@
     -fx-stroke-width: 2px;
     -fx-effect: null;
 }
-
-
-/*.default-color0.chart-series-line { -fx-stroke: #636669; }*/
-/*.default-color1.chart-series-line { -fx-stroke: #deb737; }*/
-
-/*.default-color0.chart-line-symbol { -fx-background-color: #636669,transparent }*/
-/*.default-color1.chart-line-symbol { -fx-background-color: #deb737 ,transparent }*/
-
 .default-color0.chart-area-symbol { -fx-background-color: #636669, #636669; }
 .default-color1.chart-area-symbol { -fx-background-color: #deb737, #deb737; }
 

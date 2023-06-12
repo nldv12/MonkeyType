@@ -1,5 +1,3 @@
-import javafx.application.Platform;
-import javafx.scene.paint.Color;
 
 public class CountdownTimer implements Runnable {
 
@@ -9,8 +7,8 @@ public class CountdownTimer implements Runnable {
     private final Model model;
     private final View view;
     private final Controller controller;
-    private int countSeconds = 1;
-    private int prevSecWordsCount = 0;
+    private int countSecondsPassed = 1;
+
 
 
     public CountdownTimer(Model model, View view, Controller controller, int seconds) {
@@ -33,10 +31,12 @@ public class CountdownTimer implements Runnable {
             }
             try {
                 Thread.sleep(1000);
-                controller.countCurrentWPMforCurrentSecond(prevSecWordsCount, countSeconds);
-                prevSecWordsCount = model.getSpacesAtAll();
-                controller.countAverageWPMforCurrentSecond(countSeconds);
-                countSeconds++;
+                if (!isPaused) {
+                    controller.countCurrentWPMforCurrentSecond(countSecondsPassed);
+                    controller.countAverageWPMforCurrentSecond(countSecondsPassed);
+                    countSecondsPassed++;
+                    model.setNumberOfCharsInSec(0);
+                }
             } catch (InterruptedException e) {
                 break;
             }

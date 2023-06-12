@@ -10,6 +10,7 @@ public class WaveAnimationTask implements Runnable {
     private List<Text> keysList;
 
     Timeline timeline;
+
     Model model;
     int currentIndex;
 

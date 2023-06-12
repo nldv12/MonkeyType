@@ -3,8 +3,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -37,10 +35,18 @@ public class KeyTyped implements EventHandler<KeyEvent> {
 
         if (Objects.equals("|", model.getKeysList().get(model.getCurrentIndex()).getText())){
             model.incCurrentIndex();
+            if (model.getCurrentIndex() >= model.getKeysList().size())
+                controller.generateParagraph();
+
         }
 
 
         if (!model.isPaused() && !character.equals("")) {
+
+            if (!model.isCurrWordLettersCounted()){
+                controller.countLettersForWord();
+            }
+
             if (!character.equals(" "))
                 handleLetterTyped(character);
             else {
@@ -54,9 +60,8 @@ public class KeyTyped implements EventHandler<KeyEvent> {
 
         List<Text> keysList = model.getKeysList();
         int indexOfLetter = model.getCurrentIndex();
-        System.out.println();
 
-        if (indexOfLetter == 0)
+        if (indexOfLetter == 1)
             model.setSomethingTyped(true);
 
 
@@ -85,11 +90,12 @@ public class KeyTyped implements EventHandler<KeyEvent> {
             model.incMistakeCount();
 
         }
+        model.incNumberOfCharsInSec();
 
     }
 
     private void handleSpaceTyped(String character) {
-        if (model.getCurrentIndex() == 0)
+        if (model.getCurrentIndex() == 1)
             model.setSomethingTyped(true);
         List<Text> keysList = model.getKeysList();
         if (!keysList.get(model.getCurrentIndex()).getText().equals(" ") && character.equals(" ")) {
@@ -99,38 +105,33 @@ public class KeyTyped implements EventHandler<KeyEvent> {
                 errorText.setFill(Color.valueOf("#151515FF"));
                 model.incCurrentIndex();
                 model.incSkippedCount();
+                model.incNumberOfCharsInSec();
             }
             controller.countWPM_forEveryWord();
             moveCursor(model.getCurrentIndex());
             model.incCurrentIndex();
             model.incSkippedCount();
 
-            model.incSpacesAtAll();
         } else {
+            model.setCurrWordLettersCounted(false);
             controller.countWPM_forEveryWord();
             moveCursor(model.getCurrentIndex());
             model.incCurrentIndex();
             model.incCorrectCount();
-
-            model.incSpacesAtAll();
         }
 
-        if (model.getCurrentIndex() == model.getKeysList().size())
+        if (model.getCurrentIndex() >= model.getKeysList().size())
             controller.generateParagraph();
 
 
     }
 
     private void moveCursor( int newIndex){
-        List<Text> keysList = model.getKeysList();
         model.getKeysList().remove(view.cursor);
         model.getKeysList().add(newIndex, view.cursor);
-        System.out.println();
 
-        TextFlow test = view.getMainText();
         view.getMainText().getChildren().remove(view.cursor);
         view.getMainText().getChildren().add(newIndex,view.cursor);
-        System.out.println();
 
     }
 

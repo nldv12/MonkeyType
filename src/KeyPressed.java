@@ -39,7 +39,7 @@ public class KeyPressed implements EventHandler<KeyEvent> {
             controller.shortcutAnimation(view.getPauseLabel());
         }
         // Esc
-        if (keyCode == KeyCode.ESCAPE){
+        if (keyCode == KeyCode.ESCAPE && !model.isGameOver() ){
             controller.shortcutAnimation(view.getEndLabel());
             model.setGameOver(true);
             controller.gameOver();

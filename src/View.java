@@ -3,7 +3,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.chart.AreaChart;
@@ -20,6 +19,8 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.*;
+
+// VM Options for configuration (on my PC) - on different PC neaded different --module-path "correct path"
 //--module-path "C:\javafx-sdk-20.0.1\lib" --add-modules javafx.controls,javafx.fxml
 
 public class View extends Application {
@@ -40,11 +41,7 @@ public class View extends Application {
     private Label restartLabel;
     private Label pauseLabel;
     private Label endLabel;
-
-
     private VBox statsVBox;
-
-
     private HBox bigSatsAndChart;
     private VBox wpmAndAcc;
     private HBox chart;
@@ -67,7 +64,7 @@ public class View extends Application {
 
         mainText = new TextFlow();
         mainText.setTextAlignment(TextAlignment.CENTER);
-        mainText.setPadding(new Insets(130,30,0,30));
+        mainText.setPadding(new Insets(130, 30, 0, 30));
         mainText.setLineSpacing(5);
 
         root = new BorderPane();
@@ -78,7 +75,6 @@ public class View extends Application {
         root.setCenter(mainText);
         root.setBottom(createFooter());
         runCursorAnimation();
-
 
 
         Scene scene = new Scene(root, 850, 450);
@@ -102,7 +98,7 @@ public class View extends Application {
 
         Menu languageMenu = new Menu(model.getSelectedLanguage());
         languageMenu.getStyleClass().add("menu");
-        Menu durationMenu = new Menu(model.getSelectedDuration() == 0?"Duration": String.valueOf(model.getSelectedDuration()));
+        Menu durationMenu = new Menu(model.getSelectedDuration() == 0 ? "Duration" : String.valueOf(model.getSelectedDuration()));
         durationMenu.getStyleClass().add("menu");
 
         List<MenuItem> languageItems = controller.createLanguageItems();
@@ -114,7 +110,6 @@ public class View extends Application {
         menuBar.getMenus().addAll(languageMenu, durationMenu);
         return menuBar;
     }
-
 
 
     public HBox createFooter() {
@@ -144,38 +139,7 @@ public class View extends Application {
     }
 
 
-    // GETTERS
-    public MenuBar getMenuBar() {
-        return menuBar;
-    }
 
-    public List<String> getDictionaryWords() {
-        return dictionaryWords;
-    }
-
-    public Label getTimerLabel() {
-        return timerLabel;
-    }
-
-    public TextFlow getMainText() {
-        return mainText;
-    }
-
-    public Label getRestartLabel() {
-        return restartLabel;
-    }
-
-    public Label getPauseLabel() {
-        return pauseLabel;
-    }
-
-    public Label getEndLabel() {
-        return endLabel;
-    }
-
-    public BorderPane getRoot() {
-        return root;
-    }
 
 
     public void nextPage() {
@@ -203,7 +167,6 @@ public class View extends Application {
         VBox footer = new VBox();
         footer.setMinHeight(25);
         footer.getChildren().add(restartLabel);
-
 
         statsVBox.getChildren().addAll(bigSatsAndChart, smallStats, footer);
     }
@@ -235,10 +198,21 @@ public class View extends Application {
     private HBox generateChart() {
         HBox chart = new HBox();
 
-        NumberAxis xAxis = new NumberAxis(1,model.getWpm_InCurrentSecond().size(),3);
+        // numbering density
+        int nrOfSec = model.getWpm_InCurrentSecond().size();
+        int numbering = 1;
+        if (nrOfSec>20 && nrOfSec<40)
+            numbering = 3;
+        else
+            numbering = nrOfSec/10;
+
+        NumberAxis xAxis = new NumberAxis(1, model.getWpm_InCurrentSecond().size(), numbering);
         NumberAxis yAxis = new NumberAxis();
         xAxis.setLabel("Time in seconds");
         yAxis.setLabel("Words per Minute");
+
+        xAxis.setStyle("-fx-border-color: #181818 transparent transparent transparent;");
+        yAxis.setStyle("-fx-border-color: transparent #181818 transparent transparent;");
 
         XYChart.Series<Number, Number> currentWPM = new XYChart.Series<>();
 
@@ -273,7 +247,7 @@ public class View extends Application {
         testTypeLabel.setFont(Font.font("Consolas", 19));
         testTypeLabel.setStyle("-fx-text-fill: #636569;");
 
-        Label timeLabel = new Label("time " + model.getSelectedDuration());
+        Label timeLabel = new Label("time " + model.getAverage_WPM_InCurrentSecond().size());
         timeLabel.setFont(Font.font("Consolas", 19));
         timeLabel.setStyle("-fx-text-fill: #deb737;");
 
@@ -291,7 +265,7 @@ public class View extends Application {
     private VBox createCharacters() {
         VBox characters = new VBox(3);
 
-        Label charactersLabel = new Label("characters");
+        Label charactersLabel = new Label("characters (correct/incorrect/extra/missed)");
         charactersLabel.setFont(Font.font("Consolas", 19));
         charactersLabel.setStyle("-fx-text-fill: #636569;");
 
@@ -305,7 +279,7 @@ public class View extends Application {
         return characters;
     }
 
-    private void runCursorAnimation (){
+    private void runCursorAnimation() {
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.ZERO, new KeyValue(cursor.opacityProperty(), 1.0)),
                 new KeyFrame(Duration.seconds(0.5), new KeyValue(cursor.opacityProperty(), 0.0))
@@ -314,8 +288,38 @@ public class View extends Application {
         timeline.setAutoReverse(true);
         timeline.play();
     }
+    // GETTERS
+    public MenuBar getMenuBar() {
+        return menuBar;
+    }
 
+    public List<String> getDictionaryWords() {
+        return dictionaryWords;
+    }
 
+    public Label getTimerLabel() {
+        return timerLabel;
+    }
+
+    public TextFlow getMainText() {
+        return mainText;
+    }
+
+    public Label getRestartLabel() {
+        return restartLabel;
+    }
+
+    public Label getPauseLabel() {
+        return pauseLabel;
+    }
+
+    public Label getEndLabel() {
+        return endLabel;
+    }
+
+    public BorderPane getRoot() {
+        return root;
+    }
 
 
 }
